@@ -11,31 +11,25 @@ until mysql -h "$DB_HOST" -u "$ROOT_USER" -p"$ROOT_PASSWORD" -e "select 1" > /de
   echo "等待 MySQL 伺服器啟動中..."
   sleep 5
 done
-echo "MySQL 伺服器已啟動"
 
 # 開始循環備份
 while true; do
-  echo "開始新一輪備份..."
 
+  echo "MySQL 伺服器已啟動，開始備份..."
   # 設定日期格式
   DATE=$(date +%Y%m%d_%H%M)
-
   # 刪除過舊的執行紀錄檔
   find /log -type f -name "*.log" -mtime +30 -exec rm -f {} \;
-
   # 取得所有非系統使用者
   USERS=$(mysql -h $DB_HOST -u$ROOT_USER -p$ROOT_PASSWORD -se "SELECT user FROM mysql.user WHERE user NOT IN ('root', 'healthcheck', 'mariadb.sys')" 2>&1 | grep -v "Warning")
-
   # 遍歷每個使用者
   for USER in $USERS; do
     echo ''
     echo '========='
     echo $USER;
     echo '========='
-
     # 取得該使用者有權限的資料庫
     DBS=$(mysql -h $DB_HOST -u$ROOT_USER -p$ROOT_PASSWORD -se "SELECT DISTINCT table_schema FROM information_schema.SCHEMA_PRIVILEGES WHERE grantee = CONCAT(\"'\", '$USER', \"'@'\", '%', \"'\")" 2>&1 | grep -v "Warning" | grep -Ev '(information_schema|performance_schema|mysql|sys)')
-
     # 為每個資料庫進行備份
     for DB in $DBS; do
         USER_BACKUP_DIR="$BACKUP_DIR/$USER"
