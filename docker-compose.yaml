@@ -32,14 +32,7 @@ services:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
     depends_on:
       - db
-    entrypoint: >
-      /bin/sh -c '
-      chmod +x /backup.sh && \
-      while true; do \
-        /backup.sh >> /log/backup_$(date +\%Y\%m\%d_\%H\%M\%S).log 2>&1; \
-        sleep $((${EVERY_N_HR_BACKUP} * 3600)); \
-      done
-      '
+    entrypoint: /bin/sh -c "chmod +x /backup.sh && /backup.sh";
 
   phpmyadmin:
     <<: *common-settings
